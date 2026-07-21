@@ -1,4 +1,4 @@
-const { db } = require("./database_scripts/db");
+const {db, Poll, Option, Vote} = require("./database_scripts/index");
 
 db.authenticate()
     .then(() => console.log('Connection established.'))
