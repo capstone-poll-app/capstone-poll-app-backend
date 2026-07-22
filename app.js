@@ -1,3 +1,4 @@
+
 const express = require("express");
 const pollRouter = require("./routes/poll");
 const { db, Poll, Option, Vote } = require("./database_scripts/index");
