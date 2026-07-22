@@ -1,11 +1,13 @@
 const express = require('express')
 const {db, Poll, Option, Vote} = require("./database_scripts/index");
+const cors = require('cors')
+
 
 const app = express()
 const PORT = 3000
 
 app.use(express.json());
-
+app.use(cors())
 app.get('/', async (req, res)=>{
     try{
         const data = await Poll.findAll()
