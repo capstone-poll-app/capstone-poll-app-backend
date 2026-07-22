@@ -1,6 +1,5 @@
 const express = require('express')
 const {db, Poll, Option, Vote} = require("./database_scripts/index");
-
 const app = express()
 const PORT = 3000
 
