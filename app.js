@@ -1,19 +1,19 @@
 const express = require('express')
+const pollRouter = require('./routes/poll')
 const {db, Poll, Option, Vote} = require("./database_scripts/index");
+const cors = require('cors')
+
+
 const app = express()
 const PORT = 3000
 
+//middle-ware
 app.use(express.json());
+app.use(cors())
 
-app.get('/', async (req, res)=>{
-    try{
-        const data = await Poll.findAll()
-        res.json(data);
-    }catch(err){
-        console.error('Error fetching polls:', err);
-        res.status(500).json({error: 'Failed to fetch polls'})
-    } 
-})
+app.use('/', pollRouter)
+
+
 
 
 db.authenticate()
