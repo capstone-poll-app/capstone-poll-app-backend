@@ -15,7 +15,7 @@ router.get('/polls', async (req, res) => {
     }
 });
 
-router.get('polls/:id', async (req, res)=>{
+router.get('/polls/:id', async (req, res)=>{
     try{
         const data = await Poll.findByPk(req.params.id, {include: Option});
         res.json(data);
