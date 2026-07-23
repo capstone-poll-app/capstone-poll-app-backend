@@ -5,6 +5,6 @@ const pollRouter = require("./poll");
 const voteRouter = require("./vote")
 
 router.use('/', pollRouter)
-router.use('/polls/:id/:optionId', voteRouter)
+router.use('/polls/:id/', voteRouter)
 
 module.exports = router
