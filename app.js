@@ -1,6 +1,6 @@
 
 const express = require("express");
-const pollRouter = require("./routes/poll");
+const Router = require("./routes/index");
 const { db, Poll, Option, Vote } = require("./database_scripts/index");
 const cors = require("cors");
 
@@ -11,7 +11,7 @@ const PORT = 3000;
 app.use(express.json());
 app.use(cors());
 
-app.use("/", pollRouter);
+app.use("/", Router);
 
 // db.authenticate()
 //   .then(() => console.log("Connection established."))

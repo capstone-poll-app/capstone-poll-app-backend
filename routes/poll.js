@@ -2,7 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { Poll, Option } = require('../database_scripts/models'); 
 
-router.get('/', async (req, res) => {
+router.get('/', (req, res)=>{
+    res.redirect('/polls')
+})
+router.get('/polls', async (req, res) => {
     try {
         const data = await Poll.findAll();
         res.json(data);
@@ -12,9 +15,9 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/:id', async (req, res)=>{
+router.get('/polls/:id', async (req, res)=>{
     try{
-        const data = await Poll.findByPk(req.params);
+        const data = await Poll.findByPk(req.params.id, {include: Option});
         res.json(data);
     } catch (err) {
         console.error('Error fetching poll:', err);
@@ -42,5 +45,18 @@ router.post('/polls', async (req, res) => {
         res.status(500).json({ error: 'Failed to create poll' });
     }
 });
+
+router.delete('/polls/:id', async (req,res)=>{
+    try{
+        const poll = await Poll.findByPk(req.params.id)
+        if(!poll) return res.status(400).json({error: 'Polls does not exist'})
+
+        await poll.destroy()
+        res.status(200).json({message: 'Poll deleted'})
+    }catch(err){
+        console.error('Error deleting poll:', err);
+        res.status(500).json({ error: 'Failed to delete poll' });
+    }
+})
 
 module.exports = router;
