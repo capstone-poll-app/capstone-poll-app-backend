@@ -1,18 +1,86 @@
 const express = require("express");
 const router = express.Router();
 const { Poll, Option, Vote } = require("../database_scripts/models");
+const { version } = require("node:os");
+
+//implementing long polling
+const Poll_timeout_ms = 5 * 60 * 1000;
+const Check_interval_ms = 30 * 1000;
 
 router.get("/", (req, res) => {
   res.redirect("/polls");
 });
+
 router.get("/polls", async (req, res) => {
-  try {
-    const data = await Poll.findAll();
-    res.json(data);
-  } catch (err) {
-    console.error("Error fetching polls:", err);
-    res.status(500).json({ error: "Failed to fetch polls" });
+  console.log("→ /polls hit, since:", req.query.since);
+  const clientVersion = req.query.since ? new Date(req.query.since) : null;
+  let finished = false;
+
+  let intervalId = null;
+  let timeoutId = null;
+
+  const sendResponse = async (data, changed) => {
+    console.log("send response called", changed);
+    if (finished) return;
+    finished = true;
+
+    if (intervalId) clearInterval(intervalId);
+    if (timeoutId) clearTimeout(timeoutId);
+
+    res.json({
+      data,
+      changed,
+      version: new Date().toISOString(),
+    });
+  };
+
+  async function checkStateChange() {
+    try {
+      const data = await Poll.findAll();
+      const latestUpdated = data.reduce((max, poll)=>{
+        return poll.updatedAt > max ? poll.updatedAt : max;
+      }, new Date(0));
+
+      const changed = !clientVersion || latestUpdated > clientVersion
+
+      if (changed){
+        await sendResponse(data, true);
+      }
+    } catch (err) {
+        if (!finished) {
+          finished = true;
+          if (intervalId) clearInterval(intervalId);
+          if (timeoutId) clearTimeout(timeoutId);
+          console.error("Error fetching polls:", err);
+          res.status(500).json({ error: "Failed to fetch polls" });
+        }
+    }
   }
+
+  console.log("run")
+  await checkStateChange();
+  console.log("after run", finished)
+  if (finished) return;
+  intervalId = setInterval(checkStateChange, Check_interval_ms)
+  timeoutId = setTimeout(async ()=>{
+    if(finished) return;
+
+    try {
+      const data = await Poll.findAll();
+      sendResponse(data, false);
+    } catch (err) {
+      finished = true;
+      clearInterval(intervalId);
+      console.error("Error fetching polls:", err);
+      res.status(500).json({ error: "Failed to fetch polls" });
+    }
+  }, Poll_timeout_ms);
+
+  req.on("close", () => {
+    finished = true;
+    if (intervalId) clearInterval(intervalId);
+    if (timeoutId) clearTimeout(timeoutId);
+  });
 });
 
 router.get("/polls/:id", async (req, res) => {
