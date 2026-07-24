@@ -4,8 +4,8 @@ const { Poll, Option, Vote } = require("../database_scripts/models");
 const { version } = require("node:os");
 
 //implementing long polling
-const Poll_timeout_ms = 5 * 60 * 1000;
-const Check_interval_ms = 30 * 1000;
+const Poll_timeout_ms = 60 * 1000;
+const Check_interval_ms = 3 * 1000;
 
 router.get("/", (req, res) => {
   res.redirect("/polls");
@@ -92,6 +92,26 @@ router.get("/polls/:id", async (req, res) => {
   } catch (err) {
     console.error("Error fetching poll:", err);
     res.status(500).json({ error: "Failed to fetch polls" });
+  }
+});
+
+router.patch("/polls/:id", async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    const poll = await Poll.findByPk(req.params.id);
+
+    if (!poll) {
+      return res.status(404).json({ error: "Poll not found" });
+    }
+
+    poll.status = status;
+    await poll.save();
+
+    res.json(poll);
+  } catch (err) {
+    console.error("Error patching poll:", err);
+    res.status(500).json({ error: "Failed to patch polls" });
   }
 });
 
