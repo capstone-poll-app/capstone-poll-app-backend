@@ -12,7 +12,11 @@ const Poll = db.define(
         description: {
             type: DataTypes.STRING,
             allowNull: true,
-
+        },
+        status: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true,
         }
     }
 )

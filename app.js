@@ -1,4 +1,4 @@
-
+const ExpiryJob = require("./jobs/closeExpiredPolls");
 const express = require("express");
 const Router = require("./routes/index");
 const { db, Poll, Option, Vote } = require("./database_scripts/index");
@@ -18,6 +18,7 @@ app.use("/", Router);
 //   .catch((err) => console.error("Unable to connect:", err));
 
 db.sync().then(() => {
+  ExpiryJob();
   app.listen(PORT, () => {
     console.log(`Server actively running at http://localhost:${PORT}`);
   });
